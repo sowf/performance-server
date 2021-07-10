@@ -6,8 +6,11 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+FLASK_DEBUG = True
+FLASK_PORT = 5000
+
 REDIS_PORT = '6379'
-REDIS_HOST = 'localhost'
+REDIS_HOST = 'redis'
 
 PROJECT_ROOT = os.path.abspath(os.path.dirname(__file__))
 

@@ -4,7 +4,13 @@ import logging.config
 from datetime import datetime
 from flask import Flask
 from flask_restful import Resource, Api, reqparse
-from settings import REDIS_HOST, REDIS_PORT, LOGGING_CONF
+from settings import (
+    REDIS_HOST,
+    REDIS_PORT,
+    LOGGING_CONF,
+    FLASK_DEBUG,
+    FLASK_PORT
+)
 from services import filter_keys, get_cpu, get_ram, get_gpu
 
 
@@ -28,20 +34,26 @@ parser.add_argument('to')
 
 
 class Performance(Resource):
+    def set_data(self, dt_now, data):
+        for key, value in data.items():
+            if value:
+                redis.hset(dt_now, key, value)
+
+        return data
+
     def get(self):
         logger.info(f"GET {self.__class__}")
 
         dt_now = datetime.now().strftime("%m:%d:%H:%M:%S")
         redis.hset(dt_now, "method", "GET")
 
-        res = {
-            'data': {
-                'cpu': get_cpu(),
-                'ram': get_ram(),
-                'gpu': get_gpu()
-            }
+        data = {
+            'cpu': get_cpu(),
+            'ram': get_ram(),
+            'gpu': get_gpu()
         }
-        return res
+
+        return {"data": self.set_data(dt_now, data)}
 
     def post(self):
         logger.info(f"POST {self.__class__}")
@@ -50,16 +62,19 @@ class Performance(Resource):
 
         dt_now = datetime.now().strftime("%m:%d:%H:%M:%S")
         redis.hset(dt_now, "method", "POST")
-        redis.hset(dt_now, "type", args.get('type'))
+
+        data = {}
 
         if args.get('type') == 'cpu':
-            res = {'data': {'cpu': get_cpu()}}
+            data['cpu'] = get_cpu()
         elif args.get('type') == 'ram':
-            res = {'data': {'ram': get_ram()}}
+            data['ram'] = get_ram()
         elif args.get('type') == 'gpu':
-            res = {'data': {'gpu': get_gpu()}}
-        else:
-            res = {'error': "Wrong performance type."}, 404
+            data['gpu'] = get_gpu()
+
+        res = {}, 404
+        if data:
+            res = {"data": self.set_data(dt_now, data)}
 
         return res
 
@@ -105,7 +120,7 @@ class Manager(Resource):
 
         except Exception as e:
             logger.error(e, exc_info=True)
-            res = {'error': "Неизвестная ошибка."}, 500
+            res = {}, 500
 
         return res
 
@@ -115,4 +130,4 @@ api.add_resource(Manager, '/api/manager/')
 
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=FLASK_DEBUG, port=FLASK_PORT)
