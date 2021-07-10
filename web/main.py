@@ -28,7 +28,7 @@ app = Flask(__name__)
 api = Api(app)
 
 parser = reqparse.RequestParser()
-parser.add_argument('type')
+parser.add_argument('types', action='append')
 parser.add_argument('from')
 parser.add_argument('to')
 
@@ -65,11 +65,11 @@ class Performance(Resource):
 
         data = {}
 
-        if args.get('type') == 'cpu':
+        if 'cpu' in args.get('types'):
             data['cpu'] = get_cpu()
-        elif args.get('type') == 'ram':
+        if 'ram' in args.get('types'):
             data['ram'] = get_ram()
-        elif args.get('type') == 'gpu':
+        if 'gpu' in args.get('types'):
             data['gpu'] = get_gpu()
 
         res = {}, 404
