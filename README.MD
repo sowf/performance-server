@@ -18,7 +18,7 @@ GET /api/performance/
 POST /api/performance/
 
 {
-  "type": ["cpu", "gpu", "ram"]
+  "types": ["cpu", "gpu", "ram"]
 }
 ```
 
