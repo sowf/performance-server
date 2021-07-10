@@ -8,16 +8,12 @@ services:
       - 80:80
     depends_on:
       - web
-    links:
-      - web
     volumes:
       - ./nginx:/etc/nginx/conf.d
   web:
     build: ./web
     restart: always
     depends_on:
-      - redis
-    links:
       - redis
     command: gunicorn --bind 0.0.0.0:5000 main:app
     ports:
