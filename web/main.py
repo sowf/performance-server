@@ -110,6 +110,10 @@ class Manager(Resource):
             logger.error(e, exc_info=True)
             res = {}, 500
 
+        except ValueError as ve:
+            logger.warning(ve, exc_info=True)
+            res = {}, 400
+
         return res
 
 
